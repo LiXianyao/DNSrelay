@@ -6,6 +6,23 @@
 def dnsAnalyze(data):
 
 
-    dnsFound = False
+    dnsFound = False;
     response = ''
+    #when ip=0.0.0.0 produce a response with alert
     return dnsFound, response
+#modify flags
+
+#when adding, just return False,''
+
+#TYPE=A(HOST ADRESS) 1 ;AAAA(IPV6) 28; CNAME 5
+
+
+#determine if the dns is query or response
+
+#return the checking result and response pack( to the client)
+
+#add the response in the table if it's not in
+
+#need two function to interact to the fileProcess Model:
+# bool dnsFound, string response[] = getIPadress( domain )
+# void addDomain(domain, IPadrees[])
