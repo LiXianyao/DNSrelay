@@ -8,9 +8,10 @@
 #from fileProcess import getIPadress, addDomain
 
 def dnsAnalyze(data):
-    #bytes需要转化为bytearray
+    #bytes should trans to bytearray
     dataArray = bytearray(data)
-    QR = dataArray[2] and 0x80 #根据QR判断此报文为查询or响应
+    QR = dataArray[2] & 0x80 #judge if it's query or response
+    print("QR = %d while dataArray = %d" %(QR,dataArray[2]))
     
     #numbers of query and answer resources
     queryNum = ( dataArray[4] <<4) + dataArray[5]
@@ -20,22 +21,36 @@ def dnsAnalyze(data):
     ansPtr, domain = getDomain( dataArray, queryNum)
 
     if QR==0:# is query, get the domain what to serch and give the result
-        dnsFound, domainsIP = getIPadress( domain )
-        dataArray[2] = dataArray[2] or 0x80#change the qr as response type
+        domainsIP = list()
+        print("try to find something here")
+        #dnsFound, domainsIP = getIPadress( domain )
+        dnsFound = True
+        domainsIP= ["220.181.141.250","255.255.255.255"]
+        
+        dataArray[2] = dataArray[2] | 0x80#change the qr as response type
 
-        if domainsIP == '0.0.0.0':
-        #set the RCODE as 3: the domain name referenced in the query does not exist.
-            dataArray[3] = dataArray[3] and 0xF0
-            dataArray[3] = dataArray[3] or 0x03
+        if dnsFound == True:
+            if domainsIP == '0.0.0.0':
+            #set the RCODE as 3: the domain name referenced in the query does not exist.
+                dataArray[3] = dataArray[3] & 0xF0
+                dataArray[3] = dataArray[3] | 0x03
 
-        #construct and append the answer resources into the dnspacket
-        ansNum = len( domainsIP)# numbers of IP we found
-        for IP in domainsIP:
-            #return should be a bytearray
-            ans = constructAns(IP)
-            dataArray.append(ans)
+            #construct and append the answer resources into the dnspacket
+            ansNum = len( domainsIP)# numbers of IP we found
+            for IP in domainsIP:
+                #return should be a bytearray
+                ans = constructAns(IP)
+                dataArray+=ans
+                #modify the number of answer's resources
+                if dataArray[7]==0xFF:
+                    dataArray[6]+=1
+                    dataArray[7]=0
+                else:
+                    dataArray[7]+=1;
+
+            response = bytes(dataArray)
+            print("form as " , response)
             
-        response = bytes(dataArray)
     else:# is response
         #check if it's correct, and add into the file if it's not exist
         if hasError(dataArray[3])==False:
@@ -49,40 +64,39 @@ def dnsAnalyze(data):
     return dnsFound, response
 
 
-def constructAns(IP):
+def constructAns(ip):
 
     ans = bytearray()
-    
-    for ip in IP:
-        ans += bytearray.fromhex('C00C')#ptr to the domain name
+    print("handling ip "+ip)
+    ans += bytearray.fromhex('C00C')#ptr to the domain name
 
-        if ip.find(':')>0 :#ipv6 address
-            print("get an ipv6")
-            #some process
-        else: #ipv4 address, then the TYPE is A - 01
-            ans.append(0)
-            ans.append(1)
-            RDLength = bytearray.fromhex('0004')
-
-        #the CLASS usually be \x00\x01
+    if ip.find(':')>0 :#ipv6 address
+        print("get an ipv6")
+        #some process
+    else: #ipv4 address, then the TYPE is A - 01
         ans.append(0)
         ans.append(1)
+        RDLength = bytearray.fromhex('0004')
 
-        TTL = hex(172800)
-        fillLen = 10-len(TTL) #fill the len to 4 bytes ('0x' in TTL[] should drop)
-        zero = '0' * fillLen
-        #change TTL into bytearray
-        TTL = bytearray.fromhex(zero+TTL[2:])
+    #the CLASS usually be \x00\x01
+    ans.append(0)
+    ans.append(1)
 
-        RDATA = bytearray()
-        ip = ip.split('.')
-        for byte in ip:
-            byte = int(byte)
-            RDATA.append(byte)
+    TTL = hex(172800)
+    fillLen = 10-len(TTL) #fill the len to 4 bytes ('0x' in TTL[] should drop)
+    zero = '0' * fillLen
+    #change TTL into bytearray
+    TTL = bytearray.fromhex(zero+TTL[2:])
+
+    RDATA = bytearray()
+    ip = ip.split('.')
+    for byte in ip:
+        byte = int(byte)
+        RDATA.append(byte)
         
         
-        ans += TTL + RDLength + RDATA
-        
+    ans += TTL + RDLength + RDATA
+    print("return as ", ans)
     return ans
 
 
@@ -96,15 +110,15 @@ def getDomain( dataArray, queryNum):
         aDomain=''
         while dataArray[headPtr]!= 0:
             aDomain += '.'
-            length = dataArray[headPtr]# 这段的长度
-            aDomain += dataArray[headPtr+1: headPtr+1+length].decode()#这段域名
+            length = dataArray[headPtr]
+            aDomain += dataArray[headPtr+1: headPtr+1+length].decode()
             
-            headPtr += 1+length;#指针后移
+            headPtr += 1+length;#ptr forward
         aDomain = aDomain[1:]
-        print("find a domain %s",aDomain)
+        print("find a domain "+aDomain)
         queryNum -= 1
         domain += aDomain
-        if query>0:
+        if queryNum>0:
             domain += ','
     domain = str.split(',')
     return headPtr, domain
@@ -112,9 +126,9 @@ def getDomain( dataArray, queryNum):
 def hasError(data):
     #the query has error
     if ( data and 0xFF ) >0:
-        judge = TRUE
+        judge = True
     else:
-        judge = FALSE
+        judge = False
     return judge
 #modify flags
 
