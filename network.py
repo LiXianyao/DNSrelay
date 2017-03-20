@@ -16,12 +16,12 @@ def waitResp(data,addr):
     udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     udpSocket.sendto(data,(send.dnsServer,53))
-    print("query for response:",data,(send.dnsServer,53))
+   # print("query for response:",data,(send.dnsServer,53))
     noResp = True
     while noResp:
         try:
             recvData, recvAddr = udpSocket.recvfrom(2048)
-            print("response:", recvData, recvAddr)
+    #        print("response:", recvData, recvAddr)
             noResp = False
         except:
             print("noResponse.")
