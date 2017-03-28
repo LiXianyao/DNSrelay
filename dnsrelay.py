@@ -4,7 +4,7 @@ import sys, getopt
 from dataProcess import dnsAnalyze
 from network import *
 
-#import fileProcess
+from fileProcess import file
 
 #--------------------dns server and file path setting------------------
 
@@ -20,7 +20,7 @@ def argProcess():
                         sys.exit()
                     print("set server and path as",args[0],args[1])
                     send.dnsServer = args[0]
-                    send.filePath = args[1]
+                    record.path = args[1]
                 else: #argument in the format -d dns 
                     send.dnsServer = val
                     print("set dns server as:",val)
@@ -40,6 +40,7 @@ def argProcess():
 
 def main():
     #process arguments and init certain values
+    record = file()
     argProcess()
     
     recv.soc.bind(recv.addr)
@@ -56,13 +57,13 @@ def main():
             continue
         
         #analyze the request received
-        dnsFound, response = dnsAnalyze(data)
+        dnsFound, response = dnsAnalyze(data,record)
         #if we find it in file, return it; if not, send a query to dns server
         if dnsFound:
             recv.soc.sendto(response,addr)
             print("local response:",response,addr)
         else:
-            dnsQuery(data,addr)
+            dnsQuery(data,addr,record)
         
 
     #recv.soc.close()
