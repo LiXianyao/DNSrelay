@@ -26,3 +26,18 @@ dataProcess.py
 
 fileProcess.py
 -未添加，接口需与dataProcess.py 设计
+
+-----------------------------------------------------
+
+update v1.2
+fileProcess.py
+-建立了file类，维护一个dictionary，保存已知的dns映射，并与文件同步
+	-path 保存的文件所在的路径
+	-ipDict 用于储存域名与ip地址之间的映射关系
+	-def __init__(self,setPath) 构造函数，初始化dict，
+	-def getIPaddress(self,domain) 返回是否存在域名和查询的地址列表
+	-def addDomain(self,domain,Ipaddress) 将域名与地址列表加入到维护的dictionary和文件表中
+
+修改了network，dataProcess中接口
+
+路径保存移动至file类中
