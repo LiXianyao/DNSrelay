@@ -9,6 +9,7 @@ from fileProcess import file
 #--------------------dns server and file path setting------------------
 
 def argProcess():
+    path = "dnsrelay.txt"
     try:
         opt, args = getopt.getopt(sys.argv[1:],"d::")
         for op,val in opt: # if no argument is accepted
@@ -20,7 +21,7 @@ def argProcess():
                         sys.exit()
                     print("set server and path as",args[0],args[1])
                     send.dnsServer = args[0]
-                    record.path = args[1]
+                    path = args[1]
                 else: #argument in the format -d dns 
                     send.dnsServer = val
                     print("set dns server as:",val)
@@ -32,7 +33,7 @@ def argProcess():
         sys.exit()
 
     print("settings complete.")
-
+    return path
     #network.dnsQuery(b'\xf0\xf1\xf2',"127.0.0.1") #for testing
 
 #------------------------------------------------------------------
@@ -40,8 +41,7 @@ def argProcess():
 
 def main():
     #process arguments and init certain values
-    record = file()
-    argProcess()
+    record = file(argProcess())
     
     recv.soc.bind(recv.addr)
     print("connected")

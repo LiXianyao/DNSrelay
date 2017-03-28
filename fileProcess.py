@@ -4,10 +4,11 @@
 # void addDomain(domain, IPaddrees[])
 
 class file:
-    path = "dnsrelay.txt"
+    #path = "dnsrelay.txt"
     ipDict = dict()
     
-    def __init__(self):
+    def __init__(self,setPath):
+        self.path = setPath
         f = open(self.path,'r')
         for line in f:
             #print(line,end='')
@@ -41,7 +42,7 @@ class file:
 
 if __name__ == "__main__":
     #'''
-    f = file()
+    f = file("dnsrelay.txt")
     print(f.getIPaddress('test1'))
 
     print(f.getIPaddress('test3'))

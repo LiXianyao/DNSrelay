@@ -205,13 +205,4 @@
 61.135.181.175 sohu
 123.127.134.10 bupt
 0.0.0.0 ad4.sina.com.cn
-0.0.0.0 www.163daohang.com.cn0.0.0.0 test3
-
-0.0.0.0 test3
-0.0.0.1 test3
-0.0.0.0 test3
-0.0.0.1 test3
-0.0.0.0 test3
-0.0.0.1 test3
-0.0.0.0 test3
-0.0.0.1 test3
+0.0.0.0 www.163daohang.com.cn
