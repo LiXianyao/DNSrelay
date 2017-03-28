@@ -39,7 +39,7 @@ class file:
         f.close()
         return
 
-
+#test below
 if __name__ == "__main__":
     #'''
     f = file("dnsrelay.txt")
