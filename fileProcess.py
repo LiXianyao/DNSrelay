@@ -23,8 +23,9 @@ class file:
         return
     
     def getIPaddress(self,domain):
+        #domain is a list
         try:
-            return True, self.ipDict[domain]
+            return True, self.ipDict[domain[0]]
         except:
             return False,[]
         
