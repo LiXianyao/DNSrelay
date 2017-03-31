@@ -5,9 +5,9 @@
 # and response is the dns response if domain name is found,else return 0
 
 
-#from fileProcess import getIPadress, addDomain
+from fileProcess import file
 
-def dnsAnalyze(data):
+def dnsAnalyze(data,record):
     #bytes should trans to bytearray
     dataArray = bytearray(data)
     QR = dataArray[2] & 0x80 #judge if it's query or response
@@ -19,13 +19,15 @@ def dnsAnalyze(data):
 
     #get the list of queried domains, and the pointer to the first byte of ans resources
     ansPtr, domain = getDomain( dataArray, queryNum)
-
+    dnsFound = False
+    response = ''
+    
     if QR==0:# is query, get the domain what to serch and give the result
         domainsIP = list()
         print("try to find something here")
-        #dnsFound, domainsIP = getIPadress( domain )
-        dnsFound = True
-        domainsIP= ["220.181.141.250","255.255.255.255"]
+        dnsFound, domainsIP = record.getIPaddress( domain )
+        #dnsFound = True
+        #domainsIP= ["220.181.141.250","255.255.255.255"]
         
         dataArray[2] = dataArray[2] | 0x80#change the qr as response type
 
@@ -54,7 +56,7 @@ def dnsAnalyze(data):
     else:# is response
         #check if it's correct, and add into the file if it's not exist
         if hasError(dataArray[3])==False:
-            #addDomain(domain, domainsIP)
+            record.addDomain(domain, domainsIP)
             print("add something here")
             #add in
         response = ''
@@ -134,7 +136,7 @@ def hasError(data):
 
 #when adding, just return False,''
 
-#TYPE=A(HOST ADRESS) 1 ;AAAA(IPV6) 28; CNAME 5
+#TYPE=A(HOST ADDRESS) 1 ;AAAA(IPV6) 28; CNAME 5
 
 
 #determine if the dns is query or response
@@ -144,5 +146,5 @@ def hasError(data):
 #add the response in the table if it's not in
 
 #need two function to interact to the fileProcess Model:
-# bool dnsFound, string response[] = getIPadress( domain )
-# void addDomain(domain, IPadrees[])
+# bool dnsFound, string response[] = getIPaddress( domain )
+# void addDomain(domain, IPaddrees[])

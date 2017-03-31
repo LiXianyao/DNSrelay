@@ -5,14 +5,13 @@ from dataProcess import dnsAnalyze
 
 class send:
     dnsServer = "10.3.9.5"
-    filePath = "\dnsrelay.txt"
 
 class recv:
     addr = ('',53)
     soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # thread function waiting for respond
-def waitResp(data,addr):
+def waitResp(data,addr,record):
     udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     udpSocket.sendto(data,(send.dnsServer,53))
@@ -26,13 +25,13 @@ def waitResp(data,addr):
         except:
             print("noResponse.")
     #send pack to analyze, save query result to file    
-    dnsAnalyze(recvData)
+    dnsAnalyze(recvData,record)
     #send response to client
     recv.soc.sendto(recvData,addr)
     print("reponse to client:",recvData,addr)
     
 # build thread, send request to server, and wait for response
-def dnsQuery(data,addr):
+def dnsQuery(data,addr,record):
     # build thread
-    threading.Thread(target = waitResp, args = (data,addr)).start()
+    threading.Thread(target = waitResp, args = (data,addr,record)).start()
         

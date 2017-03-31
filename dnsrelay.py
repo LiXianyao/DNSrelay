@@ -4,11 +4,12 @@ import sys, getopt
 from dataProcess import dnsAnalyze
 from network import *
 
-#import fileProcess
+from fileProcess import file
 
 #--------------------dns server and file path setting------------------
 
 def argProcess():
+    path = "dnsrelay.txt"
     try:
         opt, args = getopt.getopt(sys.argv[1:],"d::")
         for op,val in opt: # if no argument is accepted
@@ -20,7 +21,7 @@ def argProcess():
                         sys.exit()
                     print("set server and path as",args[0],args[1])
                     send.dnsServer = args[0]
-                    send.filePath = args[1]
+                    path = args[1]
                 else: #argument in the format -d dns 
                     send.dnsServer = val
                     print("set dns server as:",val)
@@ -32,7 +33,7 @@ def argProcess():
         sys.exit()
 
     print("settings complete.")
-
+    return path
     #network.dnsQuery(b'\xf0\xf1\xf2',"127.0.0.1") #for testing
 
 #------------------------------------------------------------------
@@ -40,7 +41,7 @@ def argProcess():
 
 def main():
     #process arguments and init certain values
-    argProcess()
+    record = file(argProcess())
     
     recv.soc.bind(recv.addr)
     print("connected")
@@ -56,13 +57,13 @@ def main():
             continue
         
         #analyze the request received
-        dnsFound, response = dnsAnalyze(data)
+        dnsFound, response = dnsAnalyze(data,record)
         #if we find it in file, return it; if not, send a query to dns server
         if dnsFound:
             recv.soc.sendto(response,addr)
             print("local response:",response,addr)
         else:
-            dnsQuery(data,addr)
+            dnsQuery(data,addr,record)
         
 
     #recv.soc.close()
