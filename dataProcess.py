@@ -19,13 +19,15 @@ def dnsAnalyze(data,record):
 
     #get the list of queried domains, and the pointer to the first byte of ans resources
     ansPtr, domain = getDomain( dataArray, queryNum)
-
+    dnsFound = False
+    response = ''
+    
     if QR==0:# is query, get the domain what to serch and give the result
         domainsIP = list()
         print("try to find something here")
         dnsFound, domainsIP = record.getIPaddress( domain )
-        dnsFound = True
-        domainsIP= ["220.181.141.250","255.255.255.255"]
+        #dnsFound = True
+        #domainsIP= ["220.181.141.250","255.255.255.255"]
         
         dataArray[2] = dataArray[2] | 0x80#change the qr as response type
 
