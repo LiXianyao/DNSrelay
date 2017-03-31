@@ -33,5 +33,5 @@ def waitResp(data,addr,record):
 # build thread, send request to server, and wait for response
 def dnsQuery(data,addr,record):
     # build thread
-    threading.Thread(target = waitResp, args = (data,addr)).start()
+    threading.Thread(target = waitResp, args = (data,addr,record)).start()
         
