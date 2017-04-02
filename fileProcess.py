@@ -3,6 +3,8 @@
 
 # void addDomain(domain, IPaddrees[])
 
+import sys
+
 class file:
     #path = "dnsrelay.txt"
     ipDict = dict()
@@ -23,11 +25,16 @@ class file:
         return
     
     def getIPaddress(self,domain):
-        #domain is a list
-        try:
-            return True, self.ipDict[domain[0]]
-        except:
-            return False,[]
+        #domain is a list of string
+        dnsFound = False
+        response = []
+        for name in domain:
+            try:
+                response.extend(self.ipDict[name])
+                dnsFound = True
+            except:
+                print(sys.exc_info())
+        return dnsFound, response
         
     def addDomain(self,domain,Ipaddress):
         f = open(self.path,'a')
@@ -44,9 +51,9 @@ class file:
 if __name__ == "__main__":
     #'''
     f = file("dnsrelay.txt")
-    print(f.getIPaddress('test1'))
+    print(f.getIPaddress(['test1']))
 
-    print(f.getIPaddress('test3'))
+    print(f.getIPaddress(['test3']))
     f.addDomain('test3',['0.0.0.0','0.0.0.1'])
-    print(f.getIPaddress('test3'))
+    print(f.getIPaddress(['test1','test3']))
     #'''
