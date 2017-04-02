@@ -24,31 +24,33 @@ def dnsAnalyze(data,record):
     
     if QR==0:# is query, get the domain what to serch and give the result
         domainsIP = list()
-        print("try to find something here")
+        print("try to find something here",domain)
         dnsFound, domainsIP = record.getIPaddress( domain )
+        print("getIP as ",dnsFound, domainsIP)
         #dnsFound = True
         #domainsIP= ["220.181.141.250","255.255.255.255"]
         
         dataArray[2] = dataArray[2] | 0x80#change the qr as response type
 
         if dnsFound == True:
-            if domainsIP == '0.0.0.0':
+            if domainsIP == ['0.0.0.0']:
             #set the RCODE as 3: the domain name referenced in the query does not exist.
                 dataArray[3] = dataArray[3] & 0xF0
                 dataArray[3] = dataArray[3] | 0x03
 
-            #construct and append the answer resources into the dnspacket
-            ansNum = len( domainsIP)# numbers of IP we found
-            for IP in domainsIP:
-                #return should be a bytearray
-                ans = constructAns(IP)
-                dataArray+=ans
-                #modify the number of answer's resources
-                if dataArray[7]==0xFF:
-                    dataArray[6]+=1
-                    dataArray[7]=0
-                else:
-                    dataArray[7]+=1;
+            else:
+                #construct and append the answer resources into the dnspacket
+                ansNum = len( domainsIP)# numbers of IP we found
+                for IP in domainsIP:
+                    #return should be a bytearray
+                    ans = constructAns(IP)
+                    dataArray+=ans
+                    #modify the number of answer's resources
+                    if dataArray[7]==0xFF:
+                        dataArray[6]+=1
+                        dataArray[7]=0
+                    else:
+                        dataArray[7]+=1;
 
             response = bytes(dataArray)
             print("form as " , response)
@@ -58,7 +60,8 @@ def dnsAnalyze(data,record):
         if hasError(dataArray[3])==False:
             record.addDomain(domain, domainsIP)
             print("add something here")
-            #add in
+            #may have multiple
+            
         response = ''
         dnsFound = False
     
@@ -104,7 +107,7 @@ def constructAns(ip):
 
 def getDomain( dataArray, queryNum):
 
-    domain=''
+    domain=[]
     headPtr=12
 
     while queryNum>0:
@@ -119,10 +122,8 @@ def getDomain( dataArray, queryNum):
         aDomain = aDomain[1:]
         print("find a domain "+aDomain)
         queryNum -= 1
-        domain += aDomain
-        if queryNum>0:
-            domain += ','
-    domain = str.split(',')
+        domain.append( aDomain )
+
     return headPtr, domain
 
 def hasError(data):

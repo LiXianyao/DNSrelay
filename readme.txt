@@ -41,3 +41,7 @@ fileProcess.py
 修改了network，dataProcess中接口
 
 路径保存移动至file类中
+
+update v1.3
+纠正dataProcess.py中，分解query中的domain的函数getDomain中domain的结构为list而非string,将本地查询与拆包功能对接完成；测试域名不存在错误；关闭DHCP使得查询的域名不会被自动追加末尾
+
