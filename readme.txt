@@ -45,3 +45,7 @@ fileProcess.py
 update v1.3
 纠正dataProcess.py中，分解query中的domain的函数getDomain中domain的结构为list而非string,将本地查询与拆包功能对接完成；测试域名不存在错误；关闭DHCP使得查询的域名不会被自动追加末尾
 
+update v1.4
+完成dataProcess中对响应包的分析功能，将IP剥离出来;
+修正原getDomain函数中遗漏的对查询类型、查询类字段的处理，增加对查询类型的判断处理；
+增加对于fileProcess模块函数的接口的《查询类型》要求
