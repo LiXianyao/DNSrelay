@@ -6,6 +6,8 @@ from network import *
 
 from fileProcess import file
 
+import sys
+
 #--------------------dns server and file path setting------------------
 
 def argProcess():
@@ -49,11 +51,10 @@ def main():
     while True:
         #try get data from port 53, if failed ,re-bind the address
         try:
-            data, addr = recv.soc.recvfrom(2048)
+            data, addr = recv.soc.recvfrom(1024)
             print("client request:",data, addr)
         except:
-            print("re-bind")
-            recv.soc.bind(recv.addr)
+            print("failed to receive",sys.exc_info())
             continue
         
         #analyze the request received
