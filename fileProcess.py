@@ -30,7 +30,7 @@ class file:
             return True, self.ipDict[domain]
         except:
             print(sys.exc_info())
-            return dnsFound, response
+            return False, []
         
     def addDomain(self,domain,Ipaddress):
         f = open(self.path,'a')
