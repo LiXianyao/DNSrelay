@@ -10,20 +10,24 @@ class recv:
     addr = ('',53)
     soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+lock = threading.Lock()
+
 # thread function waiting for respond
 def waitResp(data,addr,record):
     udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    udpSocket.sendto(data,(send.dnsServer,53))
-   # print("query for response:",data,(send.dnsServer,53))
-    noResp = True
-    while noResp:
-        try:
-            recvData, recvAddr = udpSocket.recvfrom(2048)
-    #        print("response:", recvData, recvAddr)
-            noResp = False
-        except:
-            print("noResponse.")
+    global lock
+    if lock.acquire():
+        udpSocket.sendto(data,(send.dnsServer,53))
+        #print("query for response:",data,(send.dnsServer,53))
+        noResp = True
+        while noResp:
+            try:
+                recvData, recvAddr = udpSocket.recvfrom(2048)
+        #        print("response:", recvData, recvAddr)
+                noResp = False
+            except:
+                print("noResponse.")
+    lock.release()
     #send pack to analyze, save query result to file    
     dnsAnalyze(recvData,record)
     #send response to client
