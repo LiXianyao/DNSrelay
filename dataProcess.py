@@ -63,9 +63,8 @@ def dnsAnalyze(data,record):
         if hasError(dataArray[3])==False:
             domainsIP = list()#get the IP of the ANS from the packet
             domainsIP = analyseAns(dataArray,ansPtr,ansNum)
-            #record.addDomain(domain, domainsIP)
+            record.addDomain(domain, domainsIP)
             print("get IPS ",domainsIP,"for domain ",domain)
-            #may have multiple
             
         response = ''
         dnsFound = False
@@ -162,9 +161,8 @@ def constructAns(ip, QTYPE):
 
 
 def getDomain( dataArray, queryNum):
-
-    domain=[]
     headPtr=12
+    aDomain=''
 
     while queryNum>0:
         RDLength = 0
@@ -179,7 +177,6 @@ def getDomain( dataArray, queryNum):
         aDomain = aDomain[1:]
         print("find a domain "+aDomain)
         queryNum -= 1
-        domain.append( aDomain )
         
     QTYPE = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
     if QTYPE==1:#query type is ipv4
@@ -191,7 +188,7 @@ def getDomain( dataArray, queryNum):
 
     headPtr += 4 #skip the query type and class
 
-    return headPtr, domain, QTYPE
+    return headPtr, aDomain, QTYPE
 
 
 #judge whether the query has error
@@ -203,20 +200,3 @@ def hasError(data):
         judge = False
     print("judge =" , judge)
     return judge
-
-#modify flags
-
-#when adding, just return False,''
-
-#TYPE=A(HOST ADDRESS) 1 ;AAAA(IPV6) 28; CNAME 5
-
-
-#determine if the dns is query or response
-
-#return the checking result and response pack( to the client)
-
-#add the response in the table if it's not in
-
-#need two function to interact to the fileProcess Model:
-# bool dnsFound, string response[] = getIPaddress( domain )
-# void addDomain(domain, IPaddrees[])
