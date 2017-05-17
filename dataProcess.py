@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 # given the DNS message "data" in format<'bytes'>
 # return two values dnsFound<'bool'> and response<'bytes'>
 # where dnsFound shows if the domain name is found
@@ -12,7 +12,6 @@ def dnsAnalyze(data,record):
     
     dataArray = bytearray(data)
     QR = dataArray[2] & 0x80 #judge if it's query or response
-    print("QR = %d while dataArray = %d" %(QR,dataArray[2]))
     
     #numbers of query and answer resources
     queryNum = ( dataArray[4] <<4) + dataArray[5]
@@ -20,7 +19,6 @@ def dnsAnalyze(data,record):
 
     #get the list of queried domains, and the pointer to the first byte of ans resources
     ansPtr, domain, QTYPE = getDomain( dataArray, queryNum)
-    print("ansPtr at ", ansPtr ,", domain is", domain, QTYPE)
 
     #initial value of the returned varience
     dnsFound = False
@@ -29,14 +27,14 @@ def dnsAnalyze(data,record):
     
     if QR==0 and QTYPE ==4:# is query, get the domain what to serch and give the result
         domainsIP = list()
-        print("try to find something here",domain)
         dnsFound, domainsIP = record.getIPaddress( domain )# ,QTYPE)
-        print("getIP as ",dnsFound, domainsIP)
+        #print("getIP as ",dnsFound, domainsIP)
         
         dataArray[2] = dataArray[2] | 0x80#change the QR as response type 1
 
         if dnsFound == True:
-            if domainsIP == ['0.0.0.0']:
+            #找到一个表示禁用的0.0.0.0ip地址
+            if '0.0.0.0' in domainsIP:
             #set the RCODE as 3: the domain name referenced in the query does not exist.
                 dataArray[3] = dataArray[3] & 0xF0 #set the RCODE segment into zero
                 dataArray[3] = dataArray[3] | 0x03 # then filled it as ERROR
@@ -56,7 +54,6 @@ def dnsAnalyze(data,record):
                         dataArray[7]+=1;
 
             response = bytes(dataArray)
-            print("form as " , response)
             
     elif QR == 128 :# if QR=1 which means it is a response packet
         #check if it's correct, and add into the file if it's not exist
@@ -64,7 +61,7 @@ def dnsAnalyze(data,record):
             domainsIP = list()#get the IP of the ANS from the packet
             domainsIP = analyseAns(dataArray,ansPtr,ansNum)
             record.addDomain(domain, domainsIP)
-            print("get IPS ",domainsIP,"for domain ",domain)
+            #print("get IPS ",domainsIP,"for domain ",domain)
             
         response = ''
         dnsFound = False
@@ -72,11 +69,11 @@ def dnsAnalyze(data,record):
     #when ip=0.0.0.0 produce a response with alert
     return dnsFound, response
 
+
 #get the IP from the ANS resources of the packet
 def analyseAns( dataArray, headPtr, ansNum ):
     IPS = list()
 
-    print("the analyse for array" , dataArray,"with ptr", headPtr)
     while ansNum>0:#get IP from each resources
         #handling the name field
         if( dataArray[headPtr]&0xC0) == 0xC0: #the domain is a pointer
@@ -91,7 +88,6 @@ def analyseAns( dataArray, headPtr, ansNum ):
         TYPE = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
         headPtr+=4#skip TYPE and CLASS field
         
-        #TTL  = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
         headPtr += 4#skip TTL
 
         RDLENGTH  = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
@@ -101,7 +97,7 @@ def analyseAns( dataArray, headPtr, ansNum ):
             ip=''
             for i in range(4):
                 ip +='.' + str(dataArray[headPtr + i])
-            print("get an ip "+ip)
+            #print("get an ip "+ip)
             IPS.append(ip[1:])# add the ip address into ans
             
         #else if TYPE== 28:# get an IPV6 address
@@ -121,9 +117,8 @@ def analyseAns( dataArray, headPtr, ansNum ):
 
 
 def constructAns(ip, QTYPE):
-
     ans = bytearray()
-    print("handling ip "+ip)
+    #print("handling ip "+ip)
     ans += bytearray.fromhex('C00C')#ptr to the domain name
 
     if QTYPE == 6 :#ipv6 address
@@ -156,7 +151,7 @@ def constructAns(ip, QTYPE):
     TTL = bytearray.fromhex(zero+TTL[2:])    
         
     ans += TTL + RDLength + RDATA
-    print("return as ", ans)
+    #print("return as ", ans)
     return ans
 
 
@@ -172,10 +167,9 @@ def getDomain( dataArray, queryNum):
             length = dataArray[headPtr]
             aDomain += dataArray[headPtr+1: headPtr+1+length].decode()
             headPtr += 1+length;#ptr forward
-        headPtr+=1 #skip the len=0 segment
             
+        headPtr+=1 #skip the len=0 segment   
         aDomain = aDomain[1:]
-        print("find a domain "+aDomain)
         queryNum -= 1
         
     QTYPE = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
@@ -198,5 +192,4 @@ def hasError(data):
         judge = True
     else:
         judge = False
-    print("judge =" , judge)
     return judge
