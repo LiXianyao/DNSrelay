@@ -17,16 +17,19 @@ def argProcess():
         for op,val in opt: # if no argument is accepted
             if op == "-d":
                 #print("val:",val)
-                if val == "d": #arguments in the format -dd dns path
-                    if len(args) != 2:
+                if val == "d": #arguments in the format -dd dns
+                    if len(args) != 1:
                         print("too few or too much arguments.")
                         sys.exit()
-                    print("set server and path as",args[0],args[1])
                     send.dnsServer = args[0]
-                    path = args[1]
-                else: #argument in the format -d dns 
+                    print("set dns server as:",args[0])
+                else: #argument in the format -d dns path
+                    if len(args) != 1:
+                        print(args,"too few or too much arguments.")
+                        sys.exit()
+                    print("set server and path as",val,args[0])
                     send.dnsServer = val
-                    print("set dns server as:",val)
+                    path = args[0]
             else:
                 print("invalid argument.")
                 sys.exit()
