@@ -4,21 +4,29 @@
 # where dnsFound shows if the domain name is found
 # and response is the dns response if domain name is found,else return 0
 
-
 from fileProcess import file
-
-def dnsAnalyze(data,record):
+def dnsAnalyze(data,record ,debug_lv,time,no):
     #bytes should trans to bytearray
-    
     dataArray = bytearray(data)
+    datalen = len(dataArray)
+    ID = ( dataArray[0] <<4) + dataArray[1]
     QR = dataArray[2] & 0x80 #judge if it's query or response
+    OPCODE = dataArray[2] & 0x78 #judge if it's query or response
+    AA = dataArray[2] & 0x04 #judge if it's query or response
+    TC = dataArray[2] & 0x02 #judge if it's query or response
+    RD = dataArray[2] & 0x01 #judge if it's query or response
+    RA = dataArray[3] & 0x80 #judge if it's query or response
+    Z = dataArray[3] & 0x70 #judge if it's query or response
+    RCODE = dataArray[3] & 0x0F #judge if it's query or response
     
     #numbers of query and answer resources
     queryNum = ( dataArray[4] <<4) + dataArray[5]
     ansNum =  (dataArray[6] <<4) + dataArray[7]
+    nsNum = ( dataArray[8] <<4) + dataArray[9]
+    arNum =  (dataArray[10] <<4) + dataArray[11]
 
     #get the list of queried domains, and the pointer to the first byte of ans resources
-    ansPtr, domain, QTYPE = getDomain( dataArray, queryNum)
+    ansPtr, domain, QTYPE,CLASS,TYPE = getDomain( dataArray, queryNum)
 
     #initial value of the returned varience
     dnsFound = False
@@ -39,7 +47,7 @@ def dnsAnalyze(data,record):
                 dataArray[3] = dataArray[3] & 0xF0 #set the RCODE segment into zero
                 dataArray[3] = dataArray[3] | 0x03 # then filled it as ERROR
 
-            elif QTYPE != -1:#query is for ip address
+            else:#query is for ip address
                 #construct and append the answer resources into the dnspacket
                 ansNum = len( domainsIP)# numbers of IP we found
                 for IP in domainsIP:
@@ -65,6 +73,15 @@ def dnsAnalyze(data,record):
             
         response = ''
         dnsFound = False
+
+
+    if debug_lv == 1:
+        print ('\t%.2f %d: %s' %(time,no,domain))
+    if debug_lv==2:
+        print ('\t%.2f %d: %s, TYPE %d, CLASS %d' %(time,no,domain,TYPE,CLASS))
+        print ('\tID %d, QR %d, OPCODE %d, AA %d, TC %d, RD %d, RA%d, Z %d,RCODE %d' %(ID,QR,OPCODE,AA,TC,RD,RA,Z,RCODE))
+        print ('\tQDCOUNT %d, ANCOUNT %d, NSCOUNT %d, ARCOUNT %d' %(queryNum,ansNum,nsNum,arNum))
+        print ('RECV (%d bytes)' %(datalen) , data)
     
     #when ip=0.0.0.0 produce a response with alert
     return dnsFound, response
@@ -171,18 +188,19 @@ def getDomain( dataArray, queryNum):
         headPtr+=1 #skip the len=0 segment   
         aDomain = aDomain[1:]
         queryNum -= 1
-        
-    QTYPE = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
-    if QTYPE==1:#query type is ipv4
+
+    QTYPE = -1
+    TYPE = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
+    if TYPE==1:#query type is ipv4
         QTYPE = 4
-    elif QTYPE == 28:#query type is ipv6
+    elif TYPE == 28:#query type is ipv6
         QTYPE = 6
-    else:#query type NEITHER ipv4 nor ipv6
-        QTYPE = -1
 
-    headPtr += 4 #skip the query type and class
+    headPtr += 2 #skip the query type
+    CLASS = (dataArray[headPtr]<<4)+dataArray[headPtr+1]
+    headPtr += 2 #skip the query class
 
-    return headPtr, aDomain, QTYPE
+    return headPtr, aDomain, QTYPE,CLASS,TYPE
 
 
 #judge whether the query has error
