@@ -1,17 +1,17 @@
 import socket
 import sys, getopt
+import time
 
 from dataProcess import dnsAnalyze
 from network import *
 
 from fileProcess import file
 
-import sys
-
 #--------------------dns server and file path setting------------------
 
 def argProcess():
     path = "dnsrelay.txt"
+    send.start_time = time.clock()
     try:
         opt, args = getopt.getopt(sys.argv[1:],"d::")
         for op,val in opt: # if no argument is accepted
@@ -23,6 +23,7 @@ def argProcess():
                         sys.exit()
                     send.dnsServer = args[0]
                     print("set dns server as:",args[0])
+                    send.debug_lv = 1
                 else: #argument in the format -d dns path
                     if len(args) != 1:
                         print(args,"too few or too much arguments.")
@@ -30,6 +31,7 @@ def argProcess():
                     print("set server and path as",val,args[0])
                     send.dnsServer = val
                     path = args[0]
+                    send.debug_lv = 2
             else:
                 print("invalid argument.")
                 sys.exit()
@@ -37,6 +39,7 @@ def argProcess():
         print("input arg is not accepted.")
         sys.exit()
 
+    print("debug level:",send.debug_lv)
     print("settings complete.")
     return path
     #network.dnsQuery(b'\xf0\xf1\xf2',"127.0.0.1") #for testing
@@ -55,17 +58,18 @@ def main():
         #try get data from port 53, if failed ,re-bind the address
         try:
             data, addr = recv.soc.recvfrom(1024)
-            print("client request:",data, addr)
+            #print("client request:",data, addr)
         except:
-            print("failed to receive",sys.exc_info())
+            #print("failed to receive",sys.exc_info())
             continue
         
         #analyze the request received
-        dnsFound, response = dnsAnalyze(data,record)
+        dnsFound, response = dnsAnalyze(data,record,send.debug_lv,get_time(),send.no)
+        send.no = send.no + 1
         #if we find it in file, return it; if not, send a query to dns server
         if dnsFound:
             recv.soc.sendto(response,addr)
-            print("local response:",response,addr)
+            #print("local response:",response,addr)
         else:
             dnsQuery(data,addr,record)
         
